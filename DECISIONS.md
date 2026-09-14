@@ -21,3 +21,13 @@ The class schedule lives in a separate "Fall '26 Class Schedule" calendar under 
 ## Hardcoded building-code lookup table over raw geocoding
 
 Class locations in the calendar are Penn building codes plus room numbers (e.g. "JMHH F50"), not street addresses. Tried passing the raw string straight to the Routes API first — it failed to resolve a transit route. Rather than building geocoding/fuzzy-matching logic for this in v1, added a small hardcoded map (`building-codes.js`) from known building codes to real addresses, since the set of buildings in any one semester's schedule is small and static. Noted as a candidate for a smarter (e.g. LLM-based) abbreviation-resolving approach in a future iteration, once the v1 pipeline is proven end-to-end.
+
+## Pulled part of v2 (SEPTA) forward into v1, for "earlier bus" options
+
+User wants to see the 2 scheduled buses before the one that's actually needed to arrive on time, so there's room to catch an earlier one. Google's Routes API can only answer "best single route for one arrival time" — it can't list multiple upcoming departures on a line. SEPTA's API is built for exactly that, so real-time SEPTA integration (originally scoped as v2) got pulled forward. Approach: use Routes API with the class start time as `arrivalTime` to find the "must-take" bus, then query SEPTA directly for that stop+route to get the surrounding schedule.
+
+Two things learned building this (`scripts/septa.js`):
+- SEPTA's `BusSchedules` endpoint needs a numeric `stop_id`, not a stop name — requires a first call to `/api/Stops` (by route number) to resolve the name Google returns (e.g. "Walnut St & 12th St") into an ID.
+- SEPTA's API occasionally returns malformed JSON (raw control characters inside strings) and intermittently 400s/501s from its load balancer — added text sanitization before `JSON.parse` and a 3-attempt retry wrapper.
+
+Also added a vehicle-type check (bus vs. tram/subway/rail) on Google's result, since not every route Google picks for a given trip/time is actually a bus (e.g. it chose the Subway-Surface trolley T5 over a bus for one tested class). SEPTA's bus API doesn't apply to those trips, so the widget falls back to showing just Google's single time in that case.

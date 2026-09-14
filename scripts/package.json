@@ -6,7 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "test-calendar-auth": "node test-calendar-auth.js",
-    "test-directions": "node test-directions.js"
+    "test-directions": "node test-directions.js",
+    "get-next-bus": "node get-next-bus.js"
   },
   "dependencies": {
     "googleapis": "^144.0.0",
