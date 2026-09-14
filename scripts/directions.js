@@ -15,6 +15,9 @@ async function getTransitDirections(origin, destination, arrivalTime) {
     origin: { address: origin },
     destination: { address: destination },
     travelMode: 'TRANSIT',
+    transitPreferences: {
+      allowedTravelModes: ['BUS'], // bus-only, per product decision - see DECISIONS.md
+    },
   };
   if (arrivalTime) {
     body.arrivalTime = arrivalTime.toISOString();

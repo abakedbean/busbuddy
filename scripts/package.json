@@ -7,7 +7,8 @@
   "scripts": {
     "test-calendar-auth": "node test-calendar-auth.js",
     "test-directions": "node test-directions.js",
-    "get-next-bus": "node get-next-bus.js"
+    "get-next-bus": "node get-next-bus.js",
+    "get-bus-home": "node get-bus-home.js"
   },
   "dependencies": {
     "googleapis": "^144.0.0",

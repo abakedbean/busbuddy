@@ -20,7 +20,8 @@ Timeline: 2-3 weeks. See [PRD.md](PRD.md) for scope and success metrics.
 - [x] Built `get-next-bus.js`: combines calendar read + location resolve + Routes API into one pipeline
 - [x] **Scope change** (see DECISIONS.md): pulled part of v2 forward — Routes API now targets the class start time as arrival time to find the "must-take" bus, then queries SEPTA's schedule API for that stop+route to list the 2 scheduled departures before it
 - [x] Handle edge cases: no upcoming events, event has no location, no transit route found, non-bus transit line (tram/subway/rail), SEPTA API errors (retry + graceful failure)
-- [ ] Build the Scriptable widget: ports `get-next-bus.js` logic into a home-screen widget, rendering the must-take bus + 2 earlier options
+- [x] **Scope addition**: `get-bus-home.js` — a separate "go home" pipeline (current location → home address → next few upcoming buses), independent of the calendar, reusing `directions.js`/`septa.js`/`building-codes.js`
+- [ ] Build the Scriptable widget: ports both `get-next-bus.js` and `get-bus-home.js` into a home-screen widget with a tappable "go home" option, swapping the Node placeholder origin for the iPhone's real GPS location via Scriptable's Location API
 - [ ] Remaining edge case to handle in the widget UI specifically: building code not in lookup table
 
 ## Week 3 — Polish, document, ship

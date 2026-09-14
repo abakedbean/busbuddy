@@ -12,6 +12,7 @@ Primary user: Ravena, a student in Philadelphia who takes SEPTA buses to calenda
 
 - Automatically surface the next calendar event's required bus (line + departure/arrival time) without the user opening Calendar or Maps.
 - Make it glanceable: visible on the iPhone home screen, no app-opening required to see the latest known info.
+- Provide an on-demand "go home" option: from the widget, check bus options from current location to home, independent of the calendar (covers trips that aren't scheduled events).
 - Ship a working, demoable v1 within 2-3 weeks.
 
 ## Non-goals (v1)
@@ -31,9 +32,11 @@ Primary user: Ravena, a student in Philadelphia who takes SEPTA buses to calenda
 
 ### v1 (this build)
 - Read next Google Calendar event (time + location) via Calendar API.
-- Convert event location to transit directions via Google Directions/Routes API (transit mode).
-- Display bus line + next departure/arrival time on an iOS home screen widget (via Scriptable).
-- Handle empty/error states (no upcoming event, no location, no transit route found).
+- Convert event location to transit directions via Google Directions/Routes API (transit mode), targeting the event's start time so the "must-take" bus is the one that arrives on time (not just "next bus right now").
+- Look up that stop+route in SEPTA's schedule API to also show the 2 scheduled buses before the must-take one, so there's room to catch an earlier bus.
+- Separate "go home" option: same pipeline, but from current device location (via Scriptable's Location API) to a fixed home address, with no calendar or arrival-time constraint — just the next few upcoming buses.
+- Display results on an iOS home screen widget (via Scriptable).
+- Handle empty/error states (no upcoming event, no location, no transit route found, non-bus transit line, SEPTA API errors).
 
 ### v2 (documented, not built now)
 - Replace/augment Google's transit ETA with SEPTA's real-time TransitView/arrivals API for live GPS-based predictions.

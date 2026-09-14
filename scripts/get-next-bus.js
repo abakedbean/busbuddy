@@ -86,7 +86,14 @@ async function main() {
     return;
   }
 
-  const schedule = await septa.getSchedule(stopId, mustTakeStep.line);
+  let schedule;
+  try {
+    schedule = await septa.getSchedule(stopId, mustTakeStep.line);
+  } catch (err) {
+    console.log('Could not reach SEPTA for earlier bus options (Google estimate above still stands):', err.message);
+    return;
+  }
+
   const mustTakeTime = new Date(mustTakeStep.departureTime);
 
   // Find the scheduled departure closest to (but not after) the must-take bus's time,
