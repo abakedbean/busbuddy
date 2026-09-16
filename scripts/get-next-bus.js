@@ -99,8 +99,16 @@ async function main() {
   // Find the scheduled departure closest to (but not after) the must-take bus's time,
   // then walk backwards from there for the earlier options.
   const sorted = schedule.filter((s) => !isNaN(s.time)).sort((a, b) => a.time - b.time);
-  let mustTakeIndex = sorted.findIndex((s) => s.time >= mustTakeTime);
-  if (mustTakeIndex === -1) mustTakeIndex = sorted.length - 1;
+  const mustTakeIndex = sorted.findIndex((s) => s.time >= mustTakeTime);
+
+  if (mustTakeIndex === -1) {
+    // SEPTA's schedule API only returns near-term upcoming departures (like a live
+    // countdown board), not a full timetable - if the class is further out than that
+    // window (e.g. tomorrow morning), we genuinely don't have data yet, not "the last
+    // entries we happen to have."
+    console.log('Earlier options not available yet - check back closer to departure time.');
+    return;
+  }
 
   const earlierBuses = sorted.slice(Math.max(0, mustTakeIndex - EARLIER_OPTIONS), mustTakeIndex);
 

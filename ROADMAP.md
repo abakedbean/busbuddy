@@ -21,11 +21,15 @@ Timeline: 2-3 weeks. See [PRD.md](PRD.md) for scope and success metrics.
 - [x] **Scope change** (see DECISIONS.md): pulled part of v2 forward — Routes API now targets the class start time as arrival time to find the "must-take" bus, then queries SEPTA's schedule API for that stop+route to list the 2 scheduled departures before it
 - [x] Handle edge cases: no upcoming events, event has no location, no transit route found, non-bus transit line (tram/subway/rail), SEPTA API errors (retry + graceful failure)
 - [x] **Scope addition**: `get-bus-home.js` — a separate "go home" pipeline (current location → home address → next few upcoming buses), independent of the calendar, reusing `directions.js`/`septa.js`/`building-codes.js`
-- [ ] Build the Scriptable widget: ports both `get-next-bus.js` and `get-bus-home.js` into a home-screen widget with a tappable "go home" option, swapping the Node placeholder origin for the iPhone's real GPS location via Scriptable's Location API
+- [x] Built `widget/bus-buddy.js`: ports both pipelines into one Scriptable script, mode chosen by the widget's Parameter field ("" = next class, "home" = go home), using real device GPS via Scriptable's Location API for both
+- [x] Built `widget/bus-buddy-setup.js`: one-time Keychain setup for credentials (see DECISIONS.md for why this is separate from a fresh on-device OAuth flow)
+- [x] Ran both scripts on an actual iPhone in Scriptable: setup + widget both work end-to-end (calendar read, location, Routes API, SEPTA)
+- [x] Fixed two on-device bugs: fragile copy-pasted secrets in setup (now trimmed + confirmed with a masked preview) and wrong "earlier options" for classes beyond SEPTA's near-term schedule window (see DECISIONS.md)
 - [ ] Remaining edge case to handle in the widget UI specifically: building code not in lookup table
 
 ## Week 3 — Polish, document, ship
 
+- [x] On-device testing and initial bug-fixing pass on the widget (see above)
 - [ ] Polish widget layout, refresh behavior, error states
 - [ ] Write `README.md` with screenshots and setup steps
 - [ ] Write `DECISIONS.md` capturing key tradeoffs made along the way
@@ -39,3 +43,10 @@ Part of the original v2 plan (using SEPTA for multiple upcoming departures) was 
 2. Match to the nearest SEPTA bus stop using the [OpenDataPhilly SEPTA stops dataset](https://opendataphilly.org/datasets/septa-routes-stops-locations/), as a fallback when stop-name matching fails.
 3. Use SEPTA's live vehicle position data (TransitView), not just scheduled times, so departures reflect real-time delays.
 4. Fall back to the v1 Google Directions estimate if SEPTA's API is unavailable (no SLA — see PRD Risks).
+
+## v3 (future direction, not scoped or started)
+
+Multi-user support: letting friends use Bus Buddy, not just Ravena. Explicitly out of scope for now (see PRD non-goals) - v1/v2 are personal-use only. If pursued later, it would need:
+
+1. Either (a) each friend runs their own lightweight setup (their own Google Cloud test-user access, their own calendar ID, their own home address/building codes), or (b) a bigger lift: publishing the Google Cloud app for real verification (so anyone can sign in without being manually allowlisted) and generalizing the building-code lookup beyond Penn-specific codes.
+2. A real onboarding flow/guide, since the current setup (Node.js scripts to generate a Google refresh token, manual Keychain entry) assumes the comfort level and guidance this project had - not realistic for a friend to self-serve without help.
