@@ -186,6 +186,8 @@ function buildWidget(title, lines) {
   return widget;
 }
 
+// Returns { lines, fallback } - fallback is true when the entries shown are "current buses
+// on this route" rather than genuine options before the must-take one (see below).
 async function getEarlierOrUpcomingBuses(mustTakeStep, { beforeTime, count }) {
   const stopId = await findStopId(mustTakeStep.line, mustTakeStep.departureStop);
   if (!stopId) {
@@ -193,23 +195,28 @@ async function getEarlierOrUpcomingBuses(mustTakeStep, { beforeTime, count }) {
   }
   const schedule = await getSchedule(stopId, mustTakeStep.line);
   const sorted = schedule.filter((s) => !isNaN(s.time)).sort((a, b) => a.time - b.time);
+  const now = new Date();
 
   let entries;
+  let fallback = false;
   if (beforeTime) {
     const idx = sorted.findIndex((s) => s.time >= beforeTime);
     if (idx === -1) {
       // SEPTA's schedule API only returns near-term upcoming departures (like a live
       // countdown board), not a full timetable - if the target time is further out than
-      // that window, we genuinely don't have data yet rather than a fallback to guess from.
-      return { lines: ['Earlier options not available yet - check back closer to departure time.'] };
+      // that window, we don't have real "earlier options" for that specific class yet.
+      // Fall back to showing current buses on the route instead of nothing, but flag it
+      // so the caller labels these clearly as "current," not "earlier options."
+      entries = sorted.filter((s) => s.time >= now).slice(0, count);
+      fallback = true;
+    } else {
+      entries = sorted.slice(Math.max(0, idx - count), idx);
     }
-    entries = sorted.slice(Math.max(0, idx - count), idx);
   } else {
-    const now = new Date();
     entries = sorted.filter((s) => s.time >= now).slice(0, count);
   }
 
-  return { lines: entries.map((bus) => `  ${bus.label} - ${bus.direction}`) };
+  return { lines: entries.map((bus) => `  ${bus.label} - ${bus.direction}`), fallback };
 }
 
 async function buildNextClassWidget() {
@@ -244,12 +251,12 @@ async function buildNextClassWidget() {
   const lines = [event.summary, `Bus ${mustTakeStep.line}: ${formatTime(new Date(mustTakeStep.departureTime))} @ ${mustTakeStep.departureStop}`];
 
   try {
-    const { lines: earlierLines } = await getEarlierOrUpcomingBuses(mustTakeStep, {
+    const { lines: earlierLines, fallback } = await getEarlierOrUpcomingBuses(mustTakeStep, {
       beforeTime: new Date(mustTakeStep.departureTime),
       count: EARLIER_OPTIONS,
     });
     if (earlierLines.length > 0) {
-      lines.push('Earlier options:');
+      lines.push(fallback ? 'Current buses (class schedule not available yet):' : 'Earlier options:');
       lines.push(...earlierLines);
     }
   } catch (err) {
